@@ -1,4 +1,4 @@
-import { Application, Router, send } from "https://deno.land/x/oak/mod.ts";
+import { Application, Router, send, RouterContext } from "https://deno.land/x/oak/mod.ts";
 
 
 const rooms = {}
@@ -10,15 +10,21 @@ const router = new Router();
 const index =  Deno.readFile(`${Deno.cwd()}/index.html`);
 const connectable =  Deno.readFile(`${Deno.cwd()}/connectable.js`);
 
-router.get("/connectable.js", async (ctx) => {
+console.log('connectable use')
+router.use("/connectable.js", async (ctx: RouterContext) => {
+  console.log('connectable serve')
   ctx.response.body = await connectable
 });
 
-router.use(async (ctx) => {
-  if (!ctx.request.headers.connection?.includes('pgrade')) {
+console.log('index use')
+router.use(async (ctx: RouterContext) => {
+  const headers: Headers = ctx.headers
+  if (!headers.connection?.includes('pgrade')) {
+    console.log('index serve')
     ctx.response.body = await index
     return
   }
+  console.log('index alt')
 
   const roomName = ctx.request.url.pathname
 
