@@ -1,5 +1,5 @@
 import { Application, Router, Context } from "https://deno.land/x/oak/mod.ts";
-import { throttle } from 'https://deno.land/x/mabiki@v1.0.1/src/throttle.ts'
+import { throttle } from './throttle.ts'
 
 const rooms = {}
 
