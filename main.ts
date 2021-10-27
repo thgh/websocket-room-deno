@@ -15,7 +15,10 @@ router.get("/connectable.js", async (ctx) => {
 });
 
 router.use(async (ctx) => {
-  ctx.response.body = await index
+  if (!ctx.request.headers.connection?.includes('pgrade')) {
+    ctx.response.body = await index
+    return
+  }
 
   const roomName = ctx.request.url.pathname
 
