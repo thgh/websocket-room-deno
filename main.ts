@@ -15,7 +15,7 @@ channel.onmessage = (evt) => {
   const { data, roomName, region } = evt.data
 
   // Broadcast external messages to this region
-  rooms[roomName].forEach(peer => {
+  rooms[roomName]?.forEach(peer => {
     peer.debounced(data)
     // peer.socket.send(data)
   })
