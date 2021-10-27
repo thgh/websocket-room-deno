@@ -26,7 +26,7 @@ app.use(async (ctx: Context) => {
       ctx.response.type = 'application/javascript'
       ctx.response.body = await connectable
     } else {
-      ctx.response.body = await index
+      ctx.response.body = (await index).replace ('Listening', 'Listening in ' + Deno.env.get("DENO_REGION"))
     }
     return
   }
