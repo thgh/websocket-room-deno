@@ -21,6 +21,7 @@ app.use(async (ctx: Context) => {
   if (!ctx.isUpgradable) {
     console.log('index serve', ctx.request.pathname)
     if (ctx.request.url.pathname==='/connectable.js') {
+      ctx.response.type = 'application/javascript'
       ctx.response.body = await connectable
     } else {
       ctx.response.body = await index
