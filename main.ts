@@ -1,5 +1,5 @@
 import { Application, Router, Context } from "https://deno.land/x/oak/mod.ts";
-
+import { throttle } from 'https://deno.land/x/mabiki@v1.0.1/src/throttle.ts'
 
 const rooms = {}
 
@@ -10,26 +10,18 @@ const channel = new BroadcastChannel('main');
 const index = Deno.readTextFile(`${Deno.cwd()}/index.html`);
 const connectable = Deno.readTextFile(`${Deno.cwd()}/connectable.js`);
 
-console.log('index use')
-
-// app.use(router.routes());
-// app.use(router.allowedMethods());
-
-
-
-
 // Listen to other regions
 channel.onmessage = (evt) => {
-  console.log('received', evt.data)
   const { data, roomName, region } = evt.data
 
   // Broadcast external messages to this region
   rooms[roomName].forEach(peer => {
-    peer.socket.send(data)
+    peer.debounced(data)
+    // peer.socket.send(data)
   })
 }
 // channel.addEventListener('message', (evt) => {
-//   console.log('received', evt.data)
+//   console.log(region, 'received', evt.data)
 //   const { data, roomName, region } = evt.data
 
 //   // Broadcast external messages to this region
@@ -41,9 +33,7 @@ channel.onmessage = (evt) => {
 // Listen to clients
 const app = new Application();
 app.use(async (ctx: Context) => {
-  console.log('index')
   if (!ctx.isUpgradable) {
-    console.log('index serve', ctx.request.pathname)
     if (ctx.request.url.pathname === '/connectable.js') {
       ctx.response.type = 'application/javascript'
       ctx.response.body = await connectable
@@ -52,13 +42,12 @@ app.use(async (ctx: Context) => {
     }
     return
   }
-  console.log('index alt')
 
   const roomName = ctx.request.url.pathname
 
   // Create room
   if (!rooms[roomName]) {
-    console.log(roomName, 'create')
+    console.log(region, roomName, 'create')
     rooms[roomName] = []
   }
 
@@ -69,17 +58,17 @@ app.use(async (ctx: Context) => {
   })
 
   // Save for later
-  rooms[roomName].push({ socket })
-  console.log(roomName, rooms[roomName].length, 'subs')
+  rooms[roomName].push({ socket, debounced: throttle(socket.send, 500) })
 
   // Broadcast messages
   socket.addEventListener('message', (evt) => {
-    console.log(roomName, 'message', evt.data.slice(0, 80))
+    console.log(region, roomName, rooms[roomName].length, 'message', evt.data.slice(0, 80))
 
     // This region
     rooms[roomName].forEach(peer => {
       if (socket !== peer.socket) {
         peer.socket.send(evt.data)
+        // peer.debounced(evt.data)
       }
     })
 
@@ -88,14 +77,12 @@ app.use(async (ctx: Context) => {
   })
 
   socket.addEventListener('close', function () {
-    console.log(roomName, rooms[roomName].length, 'subs', rooms[roomName].map(s => s.socket.readyState))
     rooms[roomName] = rooms[roomName].filter(s => s.socket !== socket)
-    console.log(roomName, rooms[roomName].length, 'subs', rooms[roomName].map(s => s.socket.readyState))
-    rooms[roomName] = rooms[roomName].filter(s => s.socket !== socket && s.readyState !== WebSocket.CLOSED)
-    console.log(roomName, rooms[roomName].length, 'subs')
+    rooms[roomName] = rooms[roomName].filter(s => s.readyState !== WebSocket.CLOSED)
+    console.log(region, roomName, rooms[roomName].length, 'subs')
     // cleanup room
     if (!rooms[roomName].length) {
-      console.log(roomName, 'delete')
+      console.log(region, roomName, 'delete')
       delete rooms[roomName]
     }
   })
@@ -105,6 +92,6 @@ app.use(async (ctx: Context) => {
 
 app.addEventListener(
   "listen",
-  (e) => console.log("Listening on http://localhost:8080"),
+  (e) => console.log(region, "Listening on http://localhost:8080"),
 );
 await app.listen({ port: 8080 });
