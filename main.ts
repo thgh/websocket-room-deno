@@ -5,18 +5,17 @@ const rooms = {}
 
 
 const router = new Router();
+
+// Serve static content
+const index =  Deno.readFile(`${Deno.cwd()}/index.html`);
+const connectable =  Deno.readFile(`${Deno.cwd()}/connectable.js`);
 router.get("/", async (ctx) => {
-  await send(ctx, ctx.request.url.pathname, {
-    root: `${Deno.cwd()}`,
-    index: "index.html",
-  });
+  ctx.response.body = await index
 });
 router.get("/connectable.js", async (ctx) => {
-  await send(ctx, ctx.request.url.pathname, {
-    root: `${Deno.cwd()}`,
-    index: "index.html",
-  });
+  ctx.response.body = await connectable
 });
+
 router.get("/ws", async (ctx) => {
   ctx.response.body = "Cool " + ctx.url;
   const roomName = ctx.request.url.pathname
