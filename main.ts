@@ -7,8 +7,8 @@ const rooms = {}
 // const router = new Router();
 
 // Serve static content
-const index =  Deno.readFile(`${Deno.cwd()}/index.html`);
-const connectable =  Deno.readFile(`${Deno.cwd()}/connectable.js`);
+const index =  Deno.readTextFile(`${Deno.cwd()}/index.html`);
+const connectable =  Deno.readTextFile(`${Deno.cwd()}/connectable.js`);
 
 console.log('index use')
 
