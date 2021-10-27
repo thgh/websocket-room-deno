@@ -39,7 +39,7 @@ channel.onmessage = (evt) => {
 // })
 
 // Listen to clients
-app.const app = new Application();
+const app = new Application();
 se(async (ctx: Context) => {
   console.log('index')
   if (!ctx.isUpgradable) {
