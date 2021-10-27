@@ -1,27 +1,30 @@
-import { Application, Router, send, RouterContext } from "https://deno.land/x/oak/mod.ts";
+import { Application, Router, Context } from "https://deno.land/x/oak/mod.ts";
 
 
 const rooms = {}
 
 
-const router = new Router();
+// const router = new Router();
 
 // Serve static content
 const index =  Deno.readFile(`${Deno.cwd()}/index.html`);
 const connectable =  Deno.readFile(`${Deno.cwd()}/connectable.js`);
 
-console.log('connectable use')
-router.use("/connectable.js", async (ctx: RouterContext) => {
-  console.log('connectable serve')
-  ctx.response.body = await connectable
-});
-
 console.log('index use')
-router.use(async (ctx: RouterContext) => {
-  const headers: Headers = ctx.headers
-  if (!headers.connection?.includes('pgrade')) {
+
+const app = new Application();
+// app.use(router.routes());
+// app.use(router.allowedMethods());
+
+app.use(async (ctx: Context) => {
+  console.log('index')
+  if (!ctx.isUpgradable()) {
     console.log('index serve')
-    ctx.response.body = await index
+    if (ctx.request.pathname==='/connectable.js') {
+      ctx.response.body = await connectable
+    } else {
+      ctx.response.body = await index
+    }
     return
   }
   console.log('index alt')
@@ -69,10 +72,6 @@ router.use(async (ctx: RouterContext) => {
 });
 
 
-
-const app = new Application();
-app.use(router.routes());
-app.use(router.allowedMethods());
 
 app.addEventListener(
   "listen",
