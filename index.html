@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width" name="viewport" />
+    <meta content="#f69" name="theme-color" />
+    <style>
+      body {
+        background: black;
+        color: white;
+        font-family: sans-serif;
+      }
+      @media (prefers-color-scheme: light) {
+        p {
+          background: white;
+          color: black;
+        }
+      }
+      form {
+        padding: 2em;
+        height: 100vh;
+        line-height: 2em;
+      }
+      label {
+        font-family: consolas, monospace;
+        opacity: .5;
+      }
+      textarea {
+        border: 2px solid #444;
+        border-radius: 4px;
+        padding: 0.5em;
+        font-size: 24px;
+        width: 100%;
+        background: none;
+        color: inherit;
+        outline: none;
+        box-sizing: border-box;
+        resize: vertical;
+      }
+    </style>
+    <script type="module">
+      import { connectable } from '/connectable.js'
+      const ws = connectable(window.location.href.replace('http', 'ws'))
+      ws.subscribe(data => {
+        if (data === undefined) {
+          return ws.send(':hello')
+        }
+        if (data === ':hello') {
+          return ws.send(myTextarea.value)
+        }
+        myTextarea.value = data
+      })
+
+      function sync(evt) {
+        evt.preventDefault()
+        ws.send(myTextarea.value)
+      }
+      window.sync = sync
+    </script>
+  </head>
+  <body>
+    <form id="form">
+      <label id="label" for="myTextarea">Listening to room</label>
+      <textarea
+        name="data"
+        id="myTextarea"
+        rows="3"
+        oninput="sync(event)"
+      ></textarea>
+    </form>
+    <div id="log"></div>
+    <script>
+      label.innerText = 'Listening to room ' + window.location.pathname
+    </script>
+  </body>
+</html>
