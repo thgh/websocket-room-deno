@@ -19,7 +19,7 @@ console.log('index use')
 
 
 // Listen to other regions
-channel.addEventListener('message', (evt) => {
+channel.onmessage = (evt) => {
   console.log('received', evt.data)
   const { data, roomName, region } = evt.data
 
@@ -27,7 +27,16 @@ channel.addEventListener('message', (evt) => {
   rooms[roomName].forEach(peer => {
     peer.socket.send(data)
   })
-})
+}
+// channel.addEventListener('message', (evt) => {
+//   console.log('received', evt.data)
+//   const { data, roomName, region } = evt.data
+
+//   // Broadcast external messages to this region
+//   rooms[roomName].forEach(peer => {
+//     peer.socket.send(data)
+//   })
+// })
 
 // Listen to clients
 app.const app = new Application();
