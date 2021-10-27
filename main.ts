@@ -5,8 +5,17 @@ const rooms = {}
 
 
 const router = new Router();
-router.get("/", (ctx) => {
-  ctx.response.body = "Hello world!";
+router.get("/", async (ctx) => {
+  await send(ctx, ctx.request.url.pathname, {
+    root: `${Deno.cwd()}`,
+    index: "index.html",
+  });
+});
+router.get("/connectable.js", async (ctx) => {
+  await send(ctx, ctx.request.url.pathname, {
+    root: `${Deno.cwd()}`,
+    index: "index.html",
+  });
 });
 router.get("/ws", async (ctx) => {
   ctx.response.body = "Cool " + ctx.url;
@@ -18,8 +27,8 @@ router.get("/ws", async (ctx) => {
     rooms[roomName] = []
   }
 
-  const socket:WebSocket = await ctx.upgrade()
   // Wait for open socket
+  const socket:WebSocket = await ctx.upgrade()
   await new Promise(res => {
     socket.addEventListener('open', res)
   })
