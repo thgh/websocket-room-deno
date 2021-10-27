@@ -40,7 +40,7 @@ channel.onmessage = (evt) => {
 
 // Listen to clients
 const app = new Application();
-se(async (ctx: Context) => {
+app.use(async (ctx: Context) => {
   console.log('index')
   if (!ctx.isUpgradable) {
     console.log('index serve', ctx.request.pathname)
