@@ -16,7 +16,9 @@ const app = new Application();
 // app.use(router.routes());
 // app.use(router.allowedMethods());
 
+let i = 1
 app.use(async (ctx: Context) => {
+  const id = i++
   console.log('index')
   if (!ctx.isUpgradable) {
     console.log('index serve', ctx.request.pathname)
@@ -45,24 +47,24 @@ app.use(async (ctx: Context) => {
   })
 
   // Save for later
-  rooms[roomName].push(socket)
+  rooms[roomName].push({ id, socket})
   console.log(roomName, rooms[roomName].length, 'subs')
 
   // Broadcast messages
   socket.addEventListener('message', (evt) => {
     console.log(roomName, 'message', evt.data.slice(0, 80))
-    rooms[roomName].forEach(s => {
-      if (socket !== s) {
-        socket.send(evt.data)
+    rooms[roomName].forEach(peer => {
+      if (socket !== peer.socket) {
+        peer.socket.send(evt.data)
       }
     })
   })
 
   socket.addEventListener('close', function() {
-    console.log(roomName, rooms[roomName].length, 'subs', rooms[roomName].map(s => s.readyState))
-    rooms[roomName] = rooms[roomName].filter(s => s !== socket)
-    console.log(roomName, rooms[roomName].length, 'subs', rooms[roomName].map(s => s.readyState))
-    rooms[roomName] = rooms[roomName].filter(s => s !== socket && s.readyState !== WebSocket.CLOSED)
+    console.log(roomName, rooms[roomName].length, 'subs', rooms[roomName].map(s => s.socket.readyState))
+    rooms[roomName] = rooms[roomName].filter(s => s.socket !== socket)
+    console.log(roomName, rooms[roomName].length, 'subs', rooms[roomName].map(s => s.socket.readyState))
+    rooms[roomName] = rooms[roomName].filter(s => s.socket !== socket && s.readyState !== WebSocket.CLOSED)
     console.log(roomName, rooms[roomName].length, 'subs')
     // cleanup room
     if (!rooms[roomName].length) {
